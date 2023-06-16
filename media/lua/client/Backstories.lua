@@ -1,6 +1,3 @@
--- Require the tables.
-require("Tables.Foods");
-
 -- Require the functions lua file.
 require("Functions");
 
@@ -11,4 +8,7 @@ Events.OnNewGame.Add(function(player, square)
 
     -- Simulate the player zombie kills.
     simulateZombieKills(days, player);
+
+    -- Simulate the survivor.
+    simulateSurvivor(player);
 end)

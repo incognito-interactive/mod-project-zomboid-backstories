@@ -1,3 +1,6 @@
+-- Require the food tables.
+require("Tables.Foods");
+
 -- Function which returns a random ID from a table.
 function getRandomTableID(table)
     -- Retrieve the size of the table.
@@ -7,11 +10,19 @@ function getRandomTableID(table)
     return table[ZombRand(1, tableSize)]
 end
 
--- Function which add a specific amount of items from a table to the inventory of the player.
-function addRandomItemsFromTable(table, amount, player)
+-- Function which add a specific amount of items from a table to a container.
+function addRandomItemsFromTable(table, amount, container)
     -- Add the items to the inventory.
-    for i = 1, amount do
-        player:getInventory():AddItem(getRandomTableID(table));
+    for i = 0, amount do
+        container:AddItem(getRandomTableID(table));
+    end
+end
+
+-- Function which increases the level of a specific perk of the player.
+function loopLevelPerk(perk, level, player)
+    for i = 0, level do
+        player:LevelPerk(perk);
+        luautils.updatePerksXp(perk, player);
     end
 end
 
@@ -30,11 +41,14 @@ function simulateZombieKills(days, player)
     -- If the player has the weak trait then they kill less.
     if player:HasTrait("Weak") then killMultiplier = killMultiplier * 0.6 end
 
-    -- If the player has the feeble trait then they kill more.
+    -- If the player has the feeble trait then they kill less.
     if player:HasTrait("Feeble") then killMultiplier = killMultiplier * 0.8 end
 
-    -- If the player has the cowardly trait then they kill more.
+    -- If the player has the cowardly trait then they kill less.
     if player:HasTrait("Cowardly") then killMultiplier = killMultiplier * 0.8 end
+
+    -- If the player has the fear of blood trait then they kill less.
+    if player:HasTrait("FearOfBlood") then killMultiplier = killMultiplier * 0.8 end
 
     -- If the player has the brave trait then they kill more.
     if player:HasTrait("Brave") then killMultiplier = killMultiplier * 1.2 end
@@ -73,10 +87,67 @@ function simulateZombieKills(days, player)
     local kills = 0;
 
     -- Simulate the daily kills based on the min and max with the multiplier applied.
-    for i = 1, days do
+    for i = 0, days do
         kills = kills + ZombRand(killMin, killMax);
     end
 
     -- Set the kill count of the player.
     player:setZombieKills(kills);
+end
+
+-- Function which simulates the survivor's skills and kit based on their occupation.
+function simulateSurvivor(player)
+    -- Retrieve the profession of the player.
+    local occupation = player:getDescriptor():getProfession();
+
+    -- The bag which will holds the simulated kit items.
+    local bag;
+
+    -- The simulated weapon at the start.
+    local weapon;
+
+    -- Spawn the veteran kit.
+    if occupation == "veteran" then
+        -- Level the perks.
+        loopLevelPerk(Perks.Strength, 2, player);
+        loopLevelPerk(Perks.Fitness, 2, player);
+        loopLevelPerk(Perks.Reloading, 3, player);
+        loopLevelPerk(Perks.Aiming, 3, player);
+
+        -- Give the player a military bag.
+        bag = player:getInventory():AddItem("Base.Bag_ALICEpack_Army");
+
+        -- Give the player a can opener.
+        bag:getItemContainer():AddItem("Base.TinOpener");
+
+        -- Give the player some extra ammo.
+        bag:getItemContainer():AddItems("Base.556Box", ZombRand(0, 2));
+        bag:getItemContainer():AddItem("Base.556Clip"):setCurrentAmmoCount(30);
+        bag:getItemContainer():AddItem("Base.556Clip"):setCurrentAmmoCount(30);
+        bag:getItemContainer():AddItem("Base.556Clip"):setCurrentAmmoCount(30);
+        player:getInventory():AddItem("Base.556Clip"):setCurrentAmmoCount(30);
+        player:getInventory():AddItem("Base.556Clip"):setCurrentAmmoCount(30);
+
+        -- Add some canned items to the bag.
+        addRandomItemsFromTable(CannedFoods, ZombRand(4, 8), bag:getItemContainer());
+
+        -- Add a random bottle to the bag.
+        addRandomItemsFromTable(DrinkBottles, ZombRand(0, 1), bag:getItemContainer());
+
+        -- Wear the bag.
+        player:setClothingItem_Back(bag);
+
+        -- Give the player an assault rifle.
+        weapon = player:getInventory():AddItem("Base.AssaultRifle");
+
+        -- Fill the ammo.
+		weapon:setCurrentAmmoCount(29);
+		weapon:setContainsClip(true);
+		weapon:setRoundChambered(true);
+
+        -- Equip it.
+		player:setPrimaryHandItem(weapon);
+		player:setSecondaryHandItem(weapon);
+        return;
+    end
 end

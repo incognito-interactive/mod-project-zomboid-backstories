@@ -47,3 +47,9 @@ Spices = {
     "Base.OilVegetable",
     "Base.Wasabi"
 }
+
+-- The table of a drinking bottles.
+DrinkBottles = {
+    "Base.WaterBottleEmpty",
+    "Base.WaterBottleFull"
+}
