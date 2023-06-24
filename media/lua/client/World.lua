@@ -4,7 +4,7 @@
 -- https://pzwiki.net/wiki/Knox_Event
 function getDaysSinceApocalypse(year, month, day)
     -- Set the start date of the apocalypse.
-    local apocalypseDate = os.date("*t", os.time{year = 1993, month = 7, day = 9, hour = 0});
+    local apocalypseDate = os.date("*t", os.time{year = 1993, month = 7, day = 9, hour = 9});
 
     -- Get the current calender date.
     local calender = getGameTime():getCalender();
@@ -22,8 +22,9 @@ function getDaysSinceApocalypse(year, month, day)
     local apocalypseMillis = calenderMillis - apocalypseMillis;
 
     -- Calculate the amount of days the apocalypse has lasted.
-    local days = math.ceil(apocalypseMillis / dayMillis);
+    local days = math.floor(apocalypseMillis / dayMillis);
 
     -- Return the total amount of days since the start of the apocalypse.
-    return days;
+    -- Note that I remove the apocalypse start date from the count since it hasn't happened yet.
+    return days - 1;
 end
